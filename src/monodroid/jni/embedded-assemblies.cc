@@ -230,7 +230,7 @@ add_type_mapping (struct TypeMappingInfo **info, const char *source_apk, const c
 
 	p->source_apk   = utils.monodroid_strdup_printf ("%s", source_apk);
 	p->source_entry = utils.monodroid_strdup_printf ("%s", source_entry);
-
+	log_info (LOG_ASSEMBLY, "typemap loaded %i", version);
 	if (*info) {
 		(*info)->next = p;
 	} else {
@@ -487,15 +487,14 @@ gather_bundled_assemblies_from_apk (
 	return 0;
 }
 
-MONO_API int
-load_typemaps_from_override_directory () {
+int
+try_load_typemaps_from_directory (const char *path) {
 	// read the entire typemap file into a string
 	// process the string using the add_type_mapping
-	mono_bool needs_free = FALSE;
 	char *full_path = NULL;
 	char *val = NULL;
 	log_info (LOG_ASSEMBLY, "load_typemaps_from_override_directory");
-	full_path = androidSystem.get_full_dso_path_on_disk ("typemaps/typemap.jm", &needs_free);
+	full_path = utils.path_combine (path, "typemaps/typemap.jm");
 	log_info (LOG_ASSEMBLY, "looking for %s", full_path);
 	if (utils.file_exists (full_path)) {
 		log_info (LOG_ASSEMBLY, "found %s", full_path);
@@ -505,9 +504,8 @@ load_typemaps_from_override_directory () {
 			add_type_mapping (&java_to_managed_maps, NULL, NULL, ((const char*)val));
 		}
 	}
-	if (needs_free)
-		free (full_path);
-	full_path = androidSystem.get_full_dso_path_on_disk ("typemaps/typemap.mj", &needs_free);
+	free (full_path);
+	full_path = utils.path_combine (path, "typemaps/typemap.mj");
 	log_info (LOG_ASSEMBLY, "looking for %s", full_path);
 	if (utils.file_exists (full_path)) {
 		log_info (LOG_ASSEMBLY, "found %s", full_path);
@@ -517,8 +515,7 @@ load_typemaps_from_override_directory () {
 			add_type_mapping (&managed_to_java_maps, NULL, NULL, ((const char*)val));
 		}
 	}
-	if (needs_free)
-		free (full_path);
+	free (full_path);
 	return 0;
 }
 
