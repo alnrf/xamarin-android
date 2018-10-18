@@ -488,7 +488,9 @@ gather_bundled_assemblies (JNIEnv *env, jobjectArray runtimeApks, mono_bool regi
 
 	monodroid_embedded_assemblies_set_register_debug_symbols (register_debug_symbols);
 	monodroid_embedded_assemblies_set_should_register (should_register_file, NULL);
-
+#ifndef RELEASE
+	load_typemaps_from_override_directory ();
+#endif
 	for (i = apksLength - 1; i >= 0; --i) {
 		int          cur_num_assemblies;
 		const char  *apk_file;

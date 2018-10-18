@@ -227,6 +227,41 @@ AndroidSystem::monodroid_get_system_property (const char *name, char **value)
 }
 
 int
+AndroidSystem::monodroid_read_file_into_memory (const char *path, char **value)
+{
+	int i;
+
+	if (value)
+		*value = NULL;
+
+	FILE* fp = utils.monodroid_fopen (path, "r");
+	if (fp == NULL)
+		return 0;
+
+	struct stat fileStat;
+	if (fstat (fileno (fp), &fileStat) < 0) {
+		fclose (fp);
+		return 0;
+	}
+
+	if (!value) {
+		fclose (fp);
+		return fileStat.st_size+1;
+	}
+
+	*value = new char[fileStat.st_size+1];
+	if (!(*value)) {
+		fclose (fp);
+		return fileStat.st_size+1;
+	}
+
+	ssize_t len = fread (*value, 1, fileStat.st_size, fp);
+	fclose (fp);
+	
+	return len;
+}
+
+int
 AndroidSystem::_monodroid_get_system_property_from_file (const char *path, char **value)
 {
 	int i;
